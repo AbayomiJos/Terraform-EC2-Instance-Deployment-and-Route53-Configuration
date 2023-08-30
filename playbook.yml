@@ -1,0 +1,41 @@
+## Ansible playbook to install apache, set timezone, display timezone and the server's IP address 
+
+- hosts: all
+  remote_user: ubuntu
+  become: yes
+  tasks:
+  - name: update and upgrade the servers
+    apt:
+      update_cache: yes
+      upgrade: yes
+  - name: install apache2
+    tags: apache, apache2, ubuntu
+    apt:
+      name:
+        - apache2
+      state: latest 
+
+  - name: Set timezone
+    command: timedatectl set-timezone Africa/Lagos
+
+  - name: Display IP Address
+    command: hostname -I
+    register: result_ip
+
+  - name: Create HTML file
+    copy:
+      content: |
+        <html>
+        <head><title>My Server Information</title></head>
+        <body>
+          <h2>My Server Information</h2>
+          <p>IP Address: {{ result_ip.stdout }}</p>
+          <p>Time Zone: Africa/Lagos</p>
+        </body>
+        </html>
+      dest: /var/www/html/index.html
+      
+  - name: Restart Apache
+    service:
+      name: apache2
+      state: restarted
